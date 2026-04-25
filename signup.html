@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mark Attendance</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Mark Attendance</h2>
+        <div id="map"></div>
+        <br>
+        <button id="checkBtn">Check & Mark Attendance</button>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        const centerLat = 12.9716;
+        const centerLng = 77.5946;
+        const radius = 100; // meters
+
+        function initMap() {
+            const center = { lat: centerLat, lng: centerLng };
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 16,
+                center: center,
+            });
+
+            const geofenceCircle = new google.maps.Circle({
+                strokeColor: "#FF0000",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "#FF0000",
+                fillOpacity: 0.2,
+                map,
+                center: center,
+                radius: radius,
+            });
+        }
+
+        function isInsideGeofence(lat, lng) {
+            const distance = google.maps.geometry.spherical.computeDistanceBetween(
+                new google.maps.LatLng(lat, lng),
+                new google.maps.LatLng(centerLat, centerLng)
+            );
+            return distance <= radius;
+        }
+
+        document.getElementById("checkBtn").addEventListener("click", () => {
+            navigator.geolocation.getCurrentPosition(position => {
+                const { latitude, longitude } = position.coords;
+
+                if (isInsideGeofence(latitude, longitude)) {
+                    document.getElementById("status").innerText = "✅ Inside geofence. Marking attendance...";
+                    fetch("/mark_attendance", { method: "POST" })
+                        .then(res => window.location.href = "/attendance_history");
+                } else {
+                    document.getElementById("status").innerText = "❌ You are outside the allowed area.";
+                }
+            }, () => {
+                document.getElementById("status").innerText = "❌ Failed to get your location.";
+            });
+        });
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>

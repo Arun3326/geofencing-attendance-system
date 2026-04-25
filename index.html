@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background-color: #f7f7f7;
+        }
+        h2 {
+            color: #333;
+        }
+        ul {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            list-style-type: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        li:last-child {
+            border-bottom: none;
+        }
+        .logout {
+            margin-top: 20px;
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #c0392b;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .logout:hover {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h2>Welcome, {{ username }}</h2>
+    <h3>Your Attendance History</h3>
+    <ul>
+        {% for record in records %}
+            <li>{{ record[0] }}</li>
+        {% else %}
+            <li>No attendance records found.</li>
+        {% endfor %}
+    </ul>
+
+    <a class="logout" href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>

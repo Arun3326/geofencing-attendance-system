@@ -1,0 +1,96 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f2f4f8;
+            padding: 20px;
+        }
+        .card {
+            margin: 20px 0;
+        }
+        .header-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .btn-radius {
+            margin-top: 10px;
+        }
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <a href="/logout" class="btn btn-danger logout-btn">Logout</a>
+
+    <div class="container">
+        <h2 class="header-title">Admin Dashboard</h2>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Export Attendance PDF</h5>
+                        <p class="card-text">Download a PDF copy of all attendance records.</p>
+                        <a href="/export_pdf" class="btn btn-success">Download PDF</a>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Update Geofence Radius</h5>
+                        <form action="/update_radius" method="POST">
+                            <div class="input-group">
+                                <input type="number" name="radius" class="form-control" placeholder="Enter radius in meters" required>
+                                <button type="submit" class="btn btn-primary btn-radius">Update</button>
+                            </div>
+                        </form>
+                        <small class="text-muted">Current Radius: {{ radius }} meters</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">All Attendance Records</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Username</th>
+                                        <th>Date</th>
+                                        <th>Check-in</th>
+                                        <th>Check-out</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in records %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ r[0] }}</td>
+                                        <td>{{ r[1] }}</td>
+                                        <td>{{ r[2] or '-' }}</td>
+                                        <td>{{ r[3] or '-' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

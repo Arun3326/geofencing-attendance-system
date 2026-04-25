@@ -1,0 +1,109 @@
+from flask import Flask, request, redirect, url_for, session, render_template
+import sqlite3
+import bcrypt
+from datetime import datetime
+import pytz
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
+# Initialize DB
+def init_db():
+    conn = sqlite3.connect('attendance.db')
+    c = conn.cursor()
+
+    # Users with roles
+    c.execute('''CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'employee'
+                )''')
+
+    # Attendance
+    c.execute('''CREATE TABLE IF NOT EXISTS attendance (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT NOT NULL,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                )''')
+
+    conn.commit()
+    conn.close()
+
+init_db()
+
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        conn = sqlite3.connect('attendance.db')
+        c = conn.cursor()
+        c.execute("SELECT password, role FROM users WHERE username = ?", (username,))
+        user = c.fetchone()
+        conn.close()
+
+        if user and bcrypt.checkpw(password.encode('utf-8'), user[0]):
+            session['username'] = username
+            session['role'] = user[1]
+            if user[1] == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('mark_attendance'))
+        else:
+            return "Invalid username or password"
+
+    return render_template('login.html')
+
+@app.route('/mark_attendance')
+def mark_attendance():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    username = session['username']
+    local_timezone = pytz.timezone('Asia/Kolkata')
+    local_time = datetime.now(local_timezone).strftime('%Y-%m-%d %H:%M:%S')
+
+    conn = sqlite3.connect('attendance.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO attendance (username, timestamp) VALUES (?, ?)", (username, local_time))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('attendance_history'))
+
+@app.route('/attendance_history')
+def attendance_history():
+    username = session.get('username')
+    if not username:
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect('attendance.db')
+    c = conn.cursor()
+    c.execute("SELECT timestamp FROM attendance WHERE username=?", (username,))
+    records = c.fetchall()
+    conn.close()
+
+    return render_template('attendance_history.html', username=username, records=records)
+
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect('attendance.db')
+    c = conn.cursor()
+    c.execute("SELECT username, timestamp FROM attendance ORDER BY timestamp DESC")
+    records = c.fetchall()
+    conn.close()
+
+    return render_template('admin_dashboard.html', records=records)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    app.run(debug=True)

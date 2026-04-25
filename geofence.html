@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard</title>
+</head>
+<body>
+    <h2>Attendance Records</h2>
+    <table border="1">
+        <tr>
+            <th>Date & Time</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Distance (m)</th>
+        </tr>
+        {% for record in records %}
+        <tr>
+            <td>{{ record.timestamp }}</td>
+            <td>{{ record.latitude }}</td>
+            <td>{{ record.longitude }}</td>
+            <td>{{ record.distance|round(2) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="/map">Back to Attendance</a>
+    <br>
+    <a href="/logout">Logout</a>
+</body>
+</html>

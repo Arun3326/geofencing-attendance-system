@@ -1,0 +1,26 @@
+navigator.geolocation.getCurrentPosition(position => {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    const accuracy = position.coords.accuracy;
+
+    fetch('/mark_attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            latitude: latitude,
+            longitude: longitude,
+            accuracy: accuracy
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            alert("Attendance marked successfully!");
+            window.location.href = "/attendance_history";
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => console.error("Error:", error));
+});
+
